@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css">
+    <!-- Use Internet Explorer 9 Standards mode -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>WebMap Reclamation</title>
+	<link rel="icon" type="image/x-icon" href="http://webgis.amnt.id/webgis_js/icon/logo_amman.png"> 
+    <link rel="icon" type="image/x-icon" href="http://localhost:90/webgis_js/icon/favicon-32x32.png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+    <link rel="stylesheet" href="http://webgis.amnt.id/webgis_js/leaflet/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin="" />
+	<link href="http://webgis.amnt.id/webgis_js/shapefile/gh-pages.css" rel="stylesheet" />
+    <script src="http://webgis.amnt.id/webgis_js/leaflet/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
+    <link rel="stylesheet" href="http://webgis.amnt.id/webgis_js/FileLayer/style.css">
+    <link rel="stylesheet" href="http://webgis.amnt.id/webgis_js/layertree/L.Control.Layers.Tree.css" crossorigin=""/>
+    <script src="http://webgis.amnt.id/webgis_js/layertree/L.Control.Layers.Tree.js"></script>
+
+    <style type="text/css">
+        html, body { width: 100%; height: 100%; margin: 0; }
+        #map { width: 100%; height: 100%; }
+        #delete, #export {
+            position: left;
+            top:500px;
+            left:100px;
+            z-index:100;
+            background:rgba(255, 255, 255, 0);
+            color:black;
+            padding:6px;
+            border-radius:4px;
+            font-family: 'Amman';
+            cursor: pointer;
+            font-size:12px;
+            text-decoration:none;
+        }
+        #export {
+            top:90px;
+        }
+    </style>
+	    <style>
+        input[type="file"] {
+            display: none;}
+        input[type="button"] {
+            display: none;}
+        .custom {
+            background-color: #8f928f; /* Green */
+            border: 1px solid #ccc;
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .custom1 {
+            background-color: #4CAF50; /* Green */
+            border: 1px solid #ccc;
+            color: white;
+            padding: 4px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 12px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.78/dist/L.Control.Locate.min.js" charset="utf-8"></script>   
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+    <script src="http://webgis.amnt.id/webgis_js/geom/leaflet.geometryutil.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+    <link rel="stylesheet" href="http://webgis.amnt.id/webgis_js/webgis_js/load.css" />
+    <script type="text/javascript" src="http://webgis.amnt.id/webgis_js/webgis_js/load.js"> </script>
+</head>
+
+<body>
+    <div id="map"style="height: 96%;"></div>
+   
+    <form action='#' onsubmit="return false;" 
+    style="display: flex; flex-direction: row; align-items: center; margin-bottom: 4px;font-family: 'Amman';font-size:12px;">
+        <label for='fileinput' class="custom">
+            <input type='file' id='fileinput' accept=".zip" placeholder='Zip File'/>
+            Select File SHP (format .ZIP)
+        </label>
+        
+        <label for='btnLoad' class="custom1">
+            <input type='button' id='btnLoad' value='Load' onclick='loadFile()'/>
+            <b>Load to Map</b>
+        </label>
+    </form>
+    
+    <script type="text/javascript" src="http://webgis.amnt.id/webgis_js/load.js"> </script>
+    <script src="http://webgis.amnt.id/webgis_js/shapefile/leaflet.shpfile.js"></script>
+    <script src="http://webgis.amnt.id/webgis_js/shapefile/shp.js"></script>
+    <script src="http://webgis.amnt.id/webgis_js/binary-admin/assets/js/jquery-1.10.2.js"></script> 
+    <script src="http://webgis.amnt.id/webgis_js/FL/src/leaflet.filelayer.js"> </script>
+    <script src="http://makinacorpus.github.io/Leaflet.FileLayer/togeojson/togeojson.js"> </script>
+    <link rel="stylesheet" href="http://webgis.amnt.id/webgis_js/layertree/L.Control.Layers.Tree.css" crossorigin=""/>
+    <script src="http://webgis.amnt.id/webgis_js/layertree/L.Control.Layers.Tree.js"></script>
+    <script type="text/javascript" src="http://webgis.amnt.id/webgis_js/logo/leaflet-control-credits.js"></script>
+    <link rel="stylesheet" href="http://webgis.amnt.id/webgis_js/logo/leaflet-control-credits.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+	<script src="http://webgis.amnt.id/webgis_js/shapefile/shp/shp.js"></script>
+    <script type="text/javascript">
+
+
+    
+            var map = L.map('map', {
+                    attributionControl: false,
+                    center: [-8.96630, 116.80080],
+                    zoom: 13
+                });
+
+            var drawnFeatures = new L.FeatureGroup();
+                map.addLayer(drawnFeatures);
+            var drawControl = new L.Control.Draw({
+                edit : {
+                    featureGroup :drawnFeatures,
+                    remove : true
+                }
+                });map.addControl(drawControl);
+            
+                          
+            map.on('draw:created', function (e) {
+                var type = e.layerType;
+                layer = e.layer;
+             
+                drawnFeatures.addLayer(layer);
+                var json = JSON.stringify(layer.toGeoJSON());
+                layer.bindPopup(json);
+            });
+
+
+
+            map.on('draw:edited', function (e) {
+                var layer = e.layer;
+                drawnFeatures.addLayer(layer);
+            });
+            
+            function loadFile() {
+                input = document.getElementById('fileinput');
+                if (!input.files[0]) {
+                    bodyAppend("p", "Please select a file before clicking 'Load'");
+                }
+                else {
+                    file = input.files[0];
+                    fr = new FileReader();
+                    fr.onload = receiveBinary;
+                    fr.readAsArrayBuffer(file);
+                }
+
+            function receiveBinary() {
+                result = fr.result
+                var shpfile = new L.Shapefile(result,{
+                    onEachFeature: function(feature, layer) {
+                        if (feature.properties) {
+                            layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                                return k + ": " +"<b>"+ feature.properties[k]  +"</b>";}).join("<br />"),
+                                {maxHeight: 200});
+                            }
+                        }
+                    })
+                    shpfile.addTo(map);
+                }};            
+
+
+            var petadasar = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                });petadasar.addTo(map);
+            
+            var BH2016 = L.tileLayer.wms('http://indbhsv0078:8080/geoserver/amnt/wms?', {
+                layers: 'BH_WV_2_Rs_2016'
+            })
+                
+            var BH2021 = L.tileLayer.wms('http://indbhsv0078:8080/geoserver/amnt/wms?', {
+                layers: 'BH_SkySat_2021'
+            })
+			
+			var BH2022 = L.tileLayer.wms('http://indbhsv0078:8080/geoserver/amnt/wms?', {
+                layers: 'BH_2022'
+            })
+			
+			var BH2023 = L.tileLayer.wms('http://indbhsv0078:8080/geoserver/amnt/wms?', {
+                layers: 'BH_2023'
+            })
+            
+                        
+        
+
+            var baseTree = [
+                    {
+                        label: 'Basemap',
+                        layer: petadasar,
+                        children: [
+                            {label: 'Batu Hijau 2016', layer: BH2016, name: 'Batu Hijau <b>2016</b>'},
+                            {label: 'Batu Hijau 2021', layer: BH2021, name: 'Batu Hijau <b>2021</b>'},
+							{label: 'Batu Hijau 2022', layer: BH2022, name: 'Batu Hijau <b>2022</b>'},
+							{label: 'Batu Hijau 2023', layer: BH2023, name: 'Batu Hijau <b>2023</b>'},
+                            
+                        ]
+                    }
+                ];
+           
+
+            //Reklamasi PTD 2022
+            var stylereklamasi2022 = {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#00FF00',
+                "fillOpacity":.5
+                }
+
+            var reklamasi2022 = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Reclamation/Reclamation2022.zip',{
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                            return k + ": " +"<b>"+ feature.properties[k]  +"</b>";
+                        }).join("<br />"), {
+                            maxHeight: 200});
+                }
+            },
+                style:stylereklamasi2022
+                });
+
+            //Reklamasi Plan 2023
+            var stylereklamasiplan23 = {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#013220',
+                "fillOpacity":.5
+                }
+
+            var reklamasiplan2023 = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Reclamation/ReclamationPlan2023.zip',{
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                            return k + ": " +"<b>"+ feature.properties[k]  +"</b>";
+                        }).join("<br />"), {
+                            maxHeight: 200});
+                }
+            },
+                style:stylereklamasiplan23
+                });
+                  
+            var A = L.layerGroup([reklamasi2022]);
+            var B = L.layerGroup([reklamasiplan2023]);
+               
+       
+            //Disturbance
+            var styledisturbance2022 = {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#FF0000',
+                "fillOpacity":.5
+                }
+
+            var disturbance2022 = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Reclamation/Disturbance2022.zip',{
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                            return k + ": " +"<b>"+ feature.properties[k]  +"</b>";
+                        }).join("<br />"), {
+                            maxHeight: 200});
+                }
+            },
+                style:styledisturbance2022
+                });
+            
+            //DisturbancePlan2023
+            var styledisturbance2023 = {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#FFA500',
+                "fillOpacity":.5
+                }
+
+            var disturbance2023 = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Reclamation/DisturbancePlan23.zip',{
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                            return k + ": " +"<b>"+ feature.properties[k]  +"</b>";
+                        }).join("<br />"), {
+                            maxHeight: 200});
+                }
+            },
+                style:styledisturbance2023
+                });
+
+            //Redisturb2022
+            var styleredisturbance2022 = {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#FFBEBE',
+                "fillOpacity":.5
+                }
+
+            var redisturbance2022 = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Reclamation/Redisturb2022.zip',{
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                            return k + ": " +"<b>"+ feature.properties[k]  +"</b>";
+                        }).join("<br />"), {
+                            maxHeight: 200});
+                }
+            },
+                style:styleredisturbance2022
+                });
+
+            //PlanRedisturb2022extend
+            var styleredisturbanceplan2022extend = {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#5C4033',
+                "fillOpacity":.5
+                }
+
+            var redisturbanceplan2022extend = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Reclamation/RedisturbPlan22Extend.zip',{
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                            return k + ": " +"<b>"+ feature.properties[k]  +"</b>";
+                        }).join("<br />"), {
+                            maxHeight: 200});
+                }
+            },
+                style:styleredisturbanceplan2022extend
+                });
+
+            //PlanRedisturb2023
+            var styleredisturbanceplan2023 = {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#964B00',
+                "fillOpacity":.5
+                }
+
+            var redisturbanceplan2023 = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Reclamation/RedisturbPlan23.zip',{
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        layer.bindPopup(Object.keys(feature.properties).map(function(k) {
+                            return k + ": " +"<b>"+ feature.properties[k]  +"</b>";
+                        }).join("<br />"), {
+                            maxHeight: 200});
+                }
+            },
+                style:styleredisturbanceplan2023
+                });
+
+            
+            //IPPKH
+            var styleIPPKH=  {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#FF00FF',
+                "fillOpacity":.35
+                }
+            
+            var IPPKH = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Ecology/IPPKH.zip',{
+                style:styleIPPKH
+                }).bindPopup ('<b>IPPKH Batu Hijau</b>') ;
+
+            //IUPK
+            var styleIUPK =  {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#33FF3F',
+                "fillOpacity":.35
+                }
+            
+            var IUPK = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Ecology/IUPK.zip',{
+                onEachFeature: function(feature, layer) {
+                    layer.bindPopup('<font face="Amman" size="1">'+'BLOK - '+feature.properties.blok);
+                    layer.setStyle(styleIUPK)}
+                });
+
+            //Project Area
+            var stylePA =  {
+                "color" :'white',
+                "weight" : 1,
+                "fillColor":'#EEC311',
+                "fillOpacity":.35
+                }
+            
+            var PA = new L.Shapefile('http://webgis.amnt.id/webgis_js/shapefile/Ecology/ProjectArea.zip',{
+                style:stylePA
+                }).bindPopup ('<b>Project Area</b>') ;
+            
+            //Forest Boundary
+            var FB = L.tileLayer.wms('http://indbhsv0078:8080/geoserver/amnt/wms?', {
+                layers: 'Kawasan_Hutan_NTB'})
+                     
+            var overlaysTree = [
+                {
+                    label: ' - <b>Administrative Boundary</b>',
+                    selectAllCheckbox: true,
+                    children: [
+                        {label: ' IUPK', layer: IUPK},
+                        {label: ' Project Area', layer: PA},
+                        {label: ' IPPKH Batu Hijau', layer: IPPKH},
+                        {label: ' Forest Boundary', layer: FB},
+                        ]
+                    },
+                {
+                    label: " - <b>Reclamation</b> ",
+                    selectAllCheckbox: true,
+                    children: [
+                        {label: ' Reclamation PTD 2022', layer: A},
+                        {label: ' Reclamation Plan 2023', layer: B},
+                        ]
+                    },
+                {
+                    label: ' - <b>Disturbance</b>',
+                    selectAllCheckbox: true,
+                    children: [
+                        {label: " Disturbance PTD 2022", layer: disturbance2022},
+                        {label: " Disturbance Plan 2023", layer: disturbance2023},
+                        ]
+                    },
+                {
+                    label: ' - <b>Redisturbance</b>',
+                    selectAllCheckbox: true,
+                    children: [
+                        {label: "  Redisturbance PTD 2022", layer: redisturbance2022},
+						{label: "  Plan Redisturbance Extend 2022", layer: redisturbanceplan2022extend},
+                        ]
+                    },               
+                ];
+                   
+            var lay = L.control.layers.tree(baseTree, overlaysTree,{
+                        namedToggle: true,
+                        selectorBack: false,
+                        closedSymbol: '&#8862; &#x1f5c0;',
+                        openedSymbol: '&#8863; &#x1f5c1;',
+                        collapseAll: 'Collapse',
+                        expandAll: 'Expand',
+                        collapsed: false,
+                    });
+        
+                lay.addTo(map).collapseTree().expandSelected().collapseTree(true);
+                L.DomEvent.on(L.DomUtil.get('onlysel'), 'click', function() {
+                    lay.collapseTree(true).expandSelected(true);
+                });
+   
+                
+
+
+        
+            </script>
+
+    
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+
+</html>
+
+
+
+
+
+
+
+    
